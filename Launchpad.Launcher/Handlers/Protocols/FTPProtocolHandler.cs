@@ -32,6 +32,8 @@ namespace Launchpad.Launcher.Handlers.Protocols
 	/// <summary>
 	/// FTP handler. Handles downloading and reading files on a remote FTP server.
 	/// There are also functions for retrieving remote version information of the game and the launcher.
+	/// 
+	/// This protocol uses a manifest.
 	/// </summary>
 	internal sealed class FTPProtocolHandler : PatchProtocolHandler
 	{
@@ -41,36 +43,13 @@ namespace Launchpad.Launcher.Handlers.Protocols
 		public int FTPbytesDownloaded = 0;
 
 		/// <summary>
-		/// The config handler reference.
-		/// </summary>
-		ConfigHandler Config = ConfigHandler._instance;
-
-		/// <summary>
-		/// Occurs when file progress changed.
-		/// </summary>
-		public event FileProgressChangedEventHandler FileProgressChanged;
-		/// <summary>
-		/// Occurs when file download finished.
-		/// </summary>
-		public event FileDownloadFinishedEventHandler FileDownloadFinished;
-
-		/// <summary>
-		/// The progress arguments object. Is updated during file download operations.
-		/// </summary>
-		private FileDownloadProgressChangedEventArgs ProgressArgs;
-
-		/// <summary>
-		/// The download finished arguments object. Is updated once a file download finishes.
-		/// </summary>
-		private FileDownloadFinishedEventArgs DownloadFinishedArgs;
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="Launchpad_Launcher.FTPHandler"/> class.
+		/// Initializes a new instance of the <see cref="Launchpad_Launcher.FTPHandler"/> class. 
+		/// This also calls the base PatchProtocolHandler constructor, setting up the common functionality.
 		/// </summary>
 		public FTPProtocolHandler()
+			: base()
 		{
-			ProgressArgs = new FileDownloadProgressChangedEventArgs();
-			DownloadFinishedArgs = new FileDownloadFinishedEventArgs();
+						
 		}
 
 		/// <summary>
@@ -80,7 +59,7 @@ namespace Launchpad.Launcher.Handlers.Protocols
 		/// <param name="ftpSourceFilePath">FTP file path.</param>
 		public string ReadFTPFile(string rawRemoteURL)
 		{
-			//clean the input URL first
+			// Clean the input URL first
 			string remoteURL = rawRemoteURL.Replace(Path.DirectorySeparatorChar, '/');
 
 			string username = Config.GetFTPUsername();
@@ -88,7 +67,7 @@ namespace Launchpad.Launcher.Handlers.Protocols
 
 			int bytesRead = 0;
 
-			//the buffer size is 256kb. More or less than this reduces download speeds.
+			// The buffer size is 256kb. More or less than this reduces download speeds.
 			byte[] buffer = new byte[262144];
 
 			FtpWebRequest request = null;
@@ -98,7 +77,6 @@ namespace Launchpad.Launcher.Handlers.Protocols
 
 			try
 			{
-
 				request = CreateFtpWebRequest(remoteURL, username, password, false);
 				sizerequest = CreateFtpWebRequest(remoteURL, username, password, false);
 
@@ -336,11 +314,11 @@ namespace Launchpad.Launcher.Handlers.Protocols
 					//set file progress info
 					ProgressArgs.DownloadedBytes = FTPbytesDownloaded;
 
-					OnProgressChanged();
+					OnFileProgressChanged();
 				}
 
-				OnProgressChanged();
-				OnDownloadFinished();
+				OnFileProgressChanged();
+				OnFileDownloadFinished();
 
 				returnValue = localPath;
 				return returnValue;             				                             
@@ -480,11 +458,11 @@ namespace Launchpad.Launcher.Handlers.Protocols
 					//set file progress info
 					ProgressArgs.DownloadedBytes = (int)contentOffset + FTPbytesDownloaded;
 
-					OnProgressChanged();
+					OnFileProgressChanged();
 				}
 
-				OnProgressChanged();
-				OnDownloadFinished();
+				OnFileProgressChanged();
+				OnFileDownloadFinished();
 
 				returnValue = localPath;
 				return returnValue;             				                             
@@ -692,23 +670,5 @@ namespace Launchpad.Launcher.Handlers.Protocols
 
 			return true;
 		}
-
-		private void OnProgressChanged()
-		{
-			if (FileProgressChanged != null)
-			{
-				FileProgressChanged(this, ProgressArgs);
-			}
-		}
-
-		private void OnDownloadFinished()
-		{
-			if (FileDownloadFinished != null)
-			{
-				FileDownloadFinished(this, DownloadFinishedArgs);
-			}
-		}
-
-
 	}
 }
