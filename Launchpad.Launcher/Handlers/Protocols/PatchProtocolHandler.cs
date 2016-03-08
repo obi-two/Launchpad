@@ -109,6 +109,6 @@ namespace Launchpad.Launcher.Handlers.Protocols
 				FileDownloadFinished(this, DownloadFinishedArgs);
 			}
 		}
+
 	}
 }
-
